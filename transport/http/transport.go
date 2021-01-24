@@ -14,32 +14,31 @@ import (
 
 var _ transport.Transport = (*Transport)(nil)
 
-type Handle func(c *gin.Context)
 type Transport struct {
 	*logical.Transport
-	basePath    string
-	listener  net.Listener
-	engine  *gin.Engine
-	srv *http.Server
+	basePath string
+	listener net.Listener
+	engine   *gin.Engine
+	srv      *http.Server
 }
 
 // AddHandle
 // gin.HandlerFunc
 // gin.HandlerFunc, httpMethod, relativePath
-func (m *Transport) AddHandle(handle interface{}, args... string) error {
+func (m *Transport) AddHandle(handle interface{}, args ...string) error {
 	h := handle.(gin.HandlerFunc)
-	if len(args) == 0{
+	if len(args) == 0 {
 		m.engine.Use(h)
-	}else if len(args)== 3{
-		m.engine.Handle(args[0],args[1], h)
-	}else {
+	} else if len(args) == 3 {
+		m.engine.Handle(args[0], args[1], h)
+	} else {
 		return errors.New("invalid args")
 	}
 	return nil
 }
 
 func NewTransport(m *pluginregister.PluginManager,
-	basePath    string,
+	basePath string,
 	workerSize int, logger hclog.Logger) *Transport {
 	trans := logical.New(logger.Named("http"), workerSize)
 	trans.PluginManager = m
@@ -47,8 +46,8 @@ func NewTransport(m *pluginregister.PluginManager,
 	engine.Use(gin.Recovery())
 	return &Transport{
 		Transport: trans,
-		basePath: basePath,
-		engine: engine,
+		basePath:  basePath,
+		engine:    engine,
 	}
 }
 
