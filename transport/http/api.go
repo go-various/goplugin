@@ -4,17 +4,17 @@ import (
 	"github.com/gin-gonic/gin"
 	gological "github.com/go-various/goplugin/logical"
 	"github.com/go-various/goplugin/transport"
+	"github.com/go-various/goplugin/transport/logical"
 	"github.com/go-various/helper/jsonutil"
 	"github.com/go-various/pool"
 	"github.com/google/uuid"
 	"strings"
 )
 
-func (m *Transport) endpoints(basePath string) {
-}
 func (m *Transport) open(basePath string) {
-	m.ginServer.Router.POST(basePath+"/open", func(c *gin.Context) {
-		request := new(transport.RequestArgs)
+
+	m.engine.POST(basePath+"/open", func(c *gin.Context) {
+		request := new(transport.Request)
 		if err := c.ShouldBindJSON(request); err != nil {
 			c.SecureJSON(200, transport.Error(transport.ReplyCodeFailure, err.Error()))
 			return
@@ -31,19 +31,19 @@ func (m *Transport) open(basePath string) {
 			Operation: methods[2],
 		}
 
-		if m.security != nil {
+		if m.Security != nil {
 			client := &transport.Client{
 				RemoteAddr: GetRemoteAddr(c),
 				Referer:    c.Request.Referer(),
 				UserAgent:  c.Request.UserAgent(),
 			}
-			if err := m.security.Blocker(&method, client); err != nil {
+			if err := m.Security.Blocker(client); err != nil {
 				c.SecureJSON(200,
 					transport.Error(transport.ReplyCodeReqBlocked, err.Error()))
 				return
 			}
 
-			if err := m.security.RateLimiter(&method, client); err != nil {
+			if err := m.Security.RateLimiter(client); err != nil {
 				c.SecureJSON(200, transport.Error(transport.ReplyCodeRateLimited, err.Error()))
 				return
 			}
@@ -53,8 +53,8 @@ func (m *Transport) open(basePath string) {
 	})
 }
 func (m *Transport) api(basePath string) {
-	m.ginServer.Router.POST(basePath+"/api", func(c *gin.Context) {
-		request := new(transport.RequestArgs)
+	m.engine.POST(basePath+"/api", func(c *gin.Context) {
+		request := new(transport.Request)
 		if err := c.ShouldBindJSON(request); err != nil {
 			c.SecureJSON(200, transport.Error(transport.ReplyCodeFailure, err.Error()))
 			return
@@ -71,8 +71,8 @@ func (m *Transport) api(basePath string) {
 			Operation: methods[2],
 		}
 
-		if m.security != nil {
-			if !m.security.SignVerify(request) {
+		if m.Security != nil {
+			if !m.Security.SignVerify(request) {
 				c.SecureJSON(200,
 					transport.Error(transport.ReplyCodeSignInvalid, "invalid sign"))
 				return
@@ -82,13 +82,13 @@ func (m *Transport) api(basePath string) {
 				Referer:    c.Request.Referer(),
 				UserAgent:  c.Request.UserAgent(),
 			}
-			if err := m.security.Blocker(&method, client); err != nil {
+			if err := m.Security.Blocker(client); err != nil {
 				c.SecureJSON(200,
 					transport.Error(transport.ReplyCodeReqBlocked, err.Error()))
 				return
 			}
 
-			if err := m.security.RateLimiter(&method, client); err != nil {
+			if err := m.Security.RateLimiter(client); err != nil {
 				c.SecureJSON(200, transport.Error(transport.ReplyCodeRateLimited, err.Error()))
 				return
 			}
@@ -110,21 +110,22 @@ func (m *Transport) invokeRequest(c *gin.Context, method transport.Method, data 
 			ConnState:  c.Request.TLS,
 		},
 	}
-	workerData := &workData{
-		backend: method.Backend,
-		request: request,
+	workerData := &logical.WorkerData{
+		Backend: method.Backend,
+		Request: request,
 	}
-	output := make(chan *workerReply, 1)
+	output := make(chan *logical.WorkerReply, 1)
 	subject := pool.NewSubject(workerData)
 
 	subject.Observer(m.NewObserver(output))
 
-	m.workerPool.Input(subject)
+	m.WorkerPool.Input(subject)
 
 	select {
 	case d := <-output:
 		m.writerReply(c, d)
 	}
+	close(output)
 }
 
 func GetRemoteAddr(c *gin.Context) string {

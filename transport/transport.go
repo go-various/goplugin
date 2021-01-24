@@ -21,7 +21,8 @@ type Method struct {
 	Namespace string
 	Operation string
 }
-type RequestArgs struct {
+
+type Request struct {
 	Method    string `json:"method" binding:"required"` //${backend}.${namespace}.${operation}
 	Version   string `json:"version" binding:"required"`
 	Timestamp string `json:"timestamp" binding:"required"`
@@ -31,18 +32,18 @@ type RequestArgs struct {
 }
 
 // http返回数据结构
-type Reply struct {
+type Response struct {
 	Code    ReplyCode   `json:"code"`
 	Result  interface{} `json:"result,omitempty"`
 	Message string      `json:"message,omitempty"`
 }
 
-func Error(code ReplyCode, message string) *Reply {
-	return &Reply{Code: code, Message: message}
+func Error(code ReplyCode, message string) *Response {
+	return &Response{Code: code, Message: message}
 }
 
-func Success(result interface{}) *Reply {
-	return &Reply{Code: 0, Result: result}
+func Success(result interface{}) *Response {
+	return &Response{Code: 0, Result: result}
 }
 
 type Transport interface {
@@ -53,11 +54,17 @@ type Transport interface {
 	Shutdown()
 	Running() <-chan bool
 	Listen(addr string, port uint) error
-	Serve(basePath string) error
+	Start() error
+
+	// AddHandle
+	// in http: gin.HandlerFunc
+	// in http: gin.HandlerFunc, httpMethod, relativePath
+	// in rpc : RPC Service instance, eg &Service{}
+	AddHandle(handle interface{}, args ...string) error
 }
 
 type Security interface {
-	SignVerify(args *RequestArgs) bool
-	RateLimiter(method *Method, client *Client) error
-	Blocker(method *Method, client *Client) error
+	SignVerify(args *Request) bool
+	RateLimiter(client *Client) error
+	Blocker(client *Client) error
 }

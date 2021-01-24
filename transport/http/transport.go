@@ -1,128 +1,84 @@
 package http
 
 import (
-	"context"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-various/ginplus"
 	"github.com/go-various/goplugin/pluginregister"
 	"github.com/go-various/goplugin/transport"
-	"github.com/go-various/pool"
+	"github.com/go-various/goplugin/transport/logical"
 	"github.com/hashicorp/go-hclog"
-	"strings"
-	"time"
+	"net"
+	"net/http"
 )
 
 var _ transport.Transport = (*Transport)(nil)
 
+type Handle func(c *gin.Context)
 type Transport struct {
-	pm          *pluginregister.PluginManager
-	logger      hclog.Logger
-	workerPool  *pool.WorkerPool
-	ctx         context.Context
-	cancel      context.CancelFunc
-	ginServer   *ginplus.Server
-	running     chan bool
-	workerSize  int
-	authMethod  *transport.Method
-	authEnabled bool
-	security    transport.Security
+	*logical.Transport
+	basePath    string
+	listener  net.Listener
+	engine  *gin.Engine
+	srv *http.Server
 }
 
-func NewHTTPTransport(m *pluginregister.PluginManager, workerSize int, logger hclog.Logger) *Transport {
-	ctx, cancel := context.WithCancel(context.Background())
-	gw := &Transport{
-		pm:          m,
-		logger:      logger.Named("http-transport"),
-		ctx:         ctx,
-		cancel:      cancel,
-		running:     make(chan bool, 1),
-		workerSize:  workerSize,
-		ginServer:   ginplus.NewServer(),
-		authEnabled: true,
-	}
-	return gw
-}
-
-func (m *Transport) SetAuthEnabled() {
-	m.authEnabled = true
-}
-
-func (m *Transport) SetAuthDisabled() {
-	m.authEnabled = false
-}
-
-func (m *Transport) SetSecurity(security transport.Security) {
-	m.security = security
-}
-
-func (m *Transport) SetAuthMethod(method string) error {
-	if method == "" {
-		return nil
-	}
-	methods := strings.Split(method, ".")[:]
-	if len(methods) != 3 {
-		return errors.New("auth method error")
-	}
-	m.authMethod = &transport.Method{
-		Backend:   methods[0],
-		Namespace: methods[1],
-		Operation: methods[2],
+// AddHandle
+// gin.HandlerFunc
+// gin.HandlerFunc, httpMethod, relativePath
+func (m *Transport) AddHandle(handle interface{}, args... string) error {
+	h := handle.(gin.HandlerFunc)
+	if len(args) == 0{
+		m.engine.Use(h)
+	}else if len(args)== 3{
+		m.engine.Handle(args[0],args[1], h)
+	}else {
+		return errors.New("invalid args")
 	}
 	return nil
+}
+
+func NewTransport(m *pluginregister.PluginManager,
+	basePath    string,
+	workerSize int, logger hclog.Logger) *Transport {
+	trans := logical.New(logger.Named("http"), workerSize)
+	trans.PluginManager = m
+	engine := gin.New()
+	engine.Use(gin.Recovery())
+	return &Transport{
+		Transport: trans,
+		basePath: basePath,
+		engine: engine,
+	}
 }
 
 //关闭网关
 func (m *Transport) Shutdown() {
-	defer func() {
-		if m.logger.IsTrace() {
-			m.logger.Trace("exited")
-		}
-	}()
-
-	m.ginServer.Shutdown(context.Background())
-
-	m.workerPool.Shutdown()
-
-	select {
-	case <-m.workerPool.Running():
-	case <-time.After(time.Second * 1):
-	}
-	close(m.running)
-}
-
-//网关是否在运行(阻塞等待)
-func (m *Transport) Running() <-chan bool {
-	return m.running
-}
-
-func (m *Transport) Router() *ginplus.Server {
-	return m.ginServer
-}
-
-func (m *Transport) AddRouter(method, router string, handleFunc func(*ginplus.Context) error) {
-	m.ginServer.Router.Handle(method, router, func(c *gin.Context) {
-		ctx := new(ginplus.Context)
-		ctx.Context = c
-		err := handleFunc(ctx)
-		if nil != err {
-			m.logger.Error("handle", "method", method, "router", router, err)
-			c.AbortWithError(200, err)
-		}
-		c.Next()
-	})
+	m.Transport.Shutdown()
+	m.srv.Shutdown(m.Transport.Ctx)
 }
 
 func (m *Transport) Listen(addr string, port uint) error {
-	if err := m.ginServer.Listen(addr, port); err != nil {
-		return err
-	}
-	return nil
+	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", addr, port))
+	m.listener = ln
+	return err
 }
 
-func (m *Transport) Serve(basePath string) error {
-	m.startWorkerPool(m.workerSize)
-	m.api(basePath)
-	m.open(basePath)
-	return m.ginServer.Serve()
+func (m *Transport) Start() error {
+	m.StartWorkerPool()
+	m.api(m.basePath)
+	m.open(m.basePath)
+	return m.Serve()
+}
+
+func (m *Transport) Serve() (err error) {
+	srv := &http.Server{
+		Addr:    m.listener.Addr().String(),
+		Handler: m.engine,
+	}
+	m.srv = srv
+	go func() {
+		err = srv.Serve(m.listener)
+	}()
+	return err
 }

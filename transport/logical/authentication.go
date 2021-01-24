@@ -1,4 +1,4 @@
-package http
+package logical
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 )
 
 //获取插件的操作名称
-func (m *Transport) getSchema(backend logical.Backend, request *logical.Request) (
+func (m *Transport) getOperation(backend logical.Backend, request *logical.Request) (
 	*logical.Operation, error) {
 
 	result, err := backend.SchemaRequest(context.Background())
@@ -35,22 +35,22 @@ func (m *Transport) getSchema(backend logical.Backend, request *logical.Request)
 func (m *Transport) authorization(backend logical.Backend, request *logical.Request) (authResp *logical.Response, err error) {
 	defer func() {
 		if err != nil {
-			m.logger.Error("authorization", "request", request, "err", err)
+			m.Logger.Error("authorization", "request", request, "Err", err)
 		}
 	}()
-	var schema *logical.Operation
-	schema, err = m.getSchema(backend, request)
+	var operation *logical.Operation
+	operation, err = m.getOperation(backend, request)
 	if nil != err {
 		return nil, err
 	}
-	if !schema.Authorized {
+	if !operation.Authorized {
 		return &logical.Response{
 			ResultCode: 0,
 			ResultMsg:  "",
 			Content:    &logical.Content{Data: &logical.Authorized{}},
 		}, nil
 	}
-	authBackend, has := m.pm.GetBackend(m.authMethod.Backend)
+	authBackend, has := m.PluginManager.GetBackend(m.authMethod.Backend)
 	if !has {
 		err = logical.ErrAuthMethodNotFound
 		return nil, err
@@ -63,12 +63,12 @@ func (m *Transport) authorization(backend logical.Backend, request *logical.Requ
 		Data:       request.Data,
 		Connection: request.Connection,
 	}
-	authResp, err = authBackend.HandleRequest(m.ctx, &authReq)
+	authResp, err = authBackend.HandleRequest(m.Ctx, &authReq)
 	if nil != err {
 		return nil, err
 	}
-	if m.logger.IsTrace() {
-		m.logger.Trace("auth reply", "reply", jsonutil.EncodeToString(authResp))
+	if m.Logger.IsTrace() {
+		m.Logger.Trace("auth reply", "reply", jsonutil.EncodeToString(authResp))
 	}
 	return authResp, nil
 }
