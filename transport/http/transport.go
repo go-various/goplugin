@@ -6,14 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-various/ginplus"
 	"github.com/go-various/goplugin/pluginregister"
-	"github.com/go-various/goplugin/transport/logical"
+	"github.com/go-various/goplugin/transport"
 	"github.com/go-various/pool"
 	"github.com/hashicorp/go-hclog"
 	"strings"
 	"time"
 )
 
-var _ logical.Transport = (*Transport)(nil)
+var _ transport.Transport = (*Transport)(nil)
 
 type Transport struct {
 	pm          *pluginregister.PluginManager
@@ -24,9 +24,9 @@ type Transport struct {
 	ginServer   *ginplus.Server
 	running     chan bool
 	workerSize  int
-	authMethod  *logical.Method
+	authMethod  *transport.Method
 	authEnabled bool
-	security    logical.Security
+	security    transport.Security
 }
 
 func NewHTTPTransport(m *pluginregister.PluginManager, workerSize int, logger hclog.Logger) *Transport {
@@ -52,7 +52,7 @@ func (m *Transport) SetAuthDisabled() {
 	m.authEnabled = false
 }
 
-func (m *Transport) SetSecurity(security logical.Security) {
+func (m *Transport) SetSecurity(security transport.Security) {
 	m.security = security
 }
 
@@ -64,7 +64,7 @@ func (m *Transport) SetAuthMethod(method string) error {
 	if len(methods) != 3 {
 		return errors.New("auth method error")
 	}
-	m.authMethod = &logical.Method{
+	m.authMethod = &transport.Method{
 		Backend:   methods[0],
 		Namespace: methods[1],
 		Operation: methods[2],

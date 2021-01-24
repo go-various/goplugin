@@ -1,4 +1,4 @@
-package logical
+package transport
 
 type ReplyCode int
 
