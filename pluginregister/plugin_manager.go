@@ -26,7 +26,8 @@ type PluginManager struct {
 	params    logical.Encodable
 }
 
-//plugin管理器
+// NewPluginManager
+// plugin管理器
 func NewPluginManager(directory string,
 	consul consul.Client,
 	params logical.Encodable,
