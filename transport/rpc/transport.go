@@ -23,17 +23,17 @@ type Transport struct {
 	listener  net.Listener
 }
 
-func (t *Transport) AddHandle(handle interface{}, args... string)error {
-	if len(args) == 1{
-		return t.rpcServer.RegisterName(args[0], handle)
-	}else {
-		return t.rpcServer.Register(handle)
+func (m *Transport) AddHandle(handle interface{}, args ...string) error {
+	if len(args) == 1 {
+		return m.rpcServer.RegisterName(args[0], handle)
+	} else {
+		return m.rpcServer.Register(handle)
 	}
 }
 
 func NewTransport(m *pluginregister.PluginManager,
 	workerSize int, logger hclog.Logger) *Transport {
-	trans := logical.New(logger.Named("rpc"), workerSize)
+	trans := logical.New(logger.Named("rpc-transport"), workerSize)
 	trans.PluginManager = m
 	return &Transport{
 		Transport: trans,
@@ -41,63 +41,61 @@ func NewTransport(m *pluginregister.PluginManager,
 	}
 }
 
-func (t *Transport) Listen(addr string, port uint) error {
+func (m *Transport) Listen(addr string, port uint) error {
 	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", addr, port))
-	t.listener = ln
+	m.listener = ln
 	return err
 }
 
-func (t *Transport) Start() error {
-	t.StartWorkerPool()
+func (m *Transport) Start() error {
+	m.StartWorkerPool()
 
-	if err := t.AddHandle( &Service{trans: t, rpc: t.rpcServer}, "Transport"); err != nil {
+	if err := m.AddHandle(&Service{trans: m, rpc: m.rpcServer}, "Transport"); err != nil {
 		return err
 	}
 
 	go func() {
 		for {
 			select {
-			case <-t.Ctx.Done():
+			case <-m.Ctx.Done():
 				return
 			default:
 			}
-			conn, err := t.listener.Accept()
+			conn, err := m.listener.Accept()
 			if err != nil {
-				t.Logger.Error("rpc.Start: accept:", "err", err.Error())
+				m.Logger.Error("rpc.Start: accept:", "err", err.Error())
 				return
 			}
 
-			t.handleConn(conn)
+			m.handleConn(conn)
 		}
 	}()
 	return nil
 }
 
-func (t *Transport) handleConn(conn net.Conn) {
-	if t.Security != nil {
+func (m *Transport) handleConn(conn net.Conn) {
+	if m.Security != nil {
 		client := &transport.Client{
 			RemoteAddr: conn.RemoteAddr().String(),
 		}
-		if err := t.Security.Blocker(client); err != nil {
+		if err := m.Security.Blocker(client); err != nil {
 			conn.Close()
 			return
 		}
-		if err := t.Security.RateLimiter(client); err != nil {
+		if err := m.Security.RateLimiter(client); err != nil {
 			conn.Close()
 			return
 		}
 	}
-
 	rpcCodec := msgpackrpc.NewCodecFromHandle(true, true, conn, &codec.MsgpackHandle{})
-	if err := t.rpcServer.ServeRequest(rpcCodec); err != nil {
+	if err := m.rpcServer.ServeRequest(rpcCodec); err != nil {
 		if err != io.EOF && !strings.Contains(err.Error(), "closed") {
-			t.Logger.Error("RPC error",
-				"conn", conn.RemoteAddr(),
-				"error", err,
-			)
+			m.Logger.Error("RPC error", "conn", conn.RemoteAddr(), "error", err)
 			metrics.IncrCounter([]string{"rpc", "request_error"}, 1)
 		}
 		return
 	}
+
 	metrics.IncrCounter([]string{"rpc", "request"}, 1)
+
 }

@@ -63,7 +63,6 @@ func (m *Transport) backend() func(i interface{}) (interface{}, error) {
 			}
 		}
 
-		result, err = backend.HandleRequest(context.Background(), data.Request)
-		return result, err
+		return backend.HandleRequest(context.Background(), data.Request)
 	}
 }

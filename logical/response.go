@@ -5,7 +5,7 @@ package logical
 type Response struct {
 	ResultCode int64               `xml:"result_code" json:"result_code" structs:"result_code" mapstructure:"result_code"`
 	ResultMsg  string              `xml:"result_msg" json:"result_msg,omitempty" structs:"result_msg" mapstructure:"result_msg"`
-	Content    *Content            `xml:"content" json:"result_content,omitempty" structs:"data" mapstructure:"data"`
+	Content    *Content            `xml:"content" json:"content,omitempty" structs:"data" mapstructure:"content"`
 	Headers    map[string][]string `xml:"headers" json:"headers,omitempty" structs:"headers" mapstructure:"headers"`
 }
 

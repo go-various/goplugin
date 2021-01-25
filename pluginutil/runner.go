@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"github.com/go-various/goplugin/version"
 	log "github.com/hashicorp/go-hclog"
 	plugin "github.com/hashicorp/go-plugin"
 	"os"
@@ -42,8 +41,6 @@ func (r *PluginRunner) runCommon(ctx context.Context, pluginSets map[int]plugin.
 	// have been provided externally.
 	cmd.Env = append(cmd.Env, r.Env...)
 	cmd.Env = append(cmd.Env, env...)
-
-	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", PluginVersionEnv, version.GetVersion().Version))
 
 	secureConfig := &plugin.SecureConfig{
 		Checksum: r.Sha256,

@@ -1,13 +1,15 @@
 package transport
 
-import "github.com/go-various/goplugin/logical"
+import (
+	gological "github.com/go-various/goplugin/logical"
+)
 
 // SchemaResponse
 // 客户端请求schema的返回结构体
 type SchemaResponse struct {
-	Name       string             `json:"name"`
-	Backend    string             `json:"backend"`
-	Namespaces logical.Namespaces `json:"namespaces"`
+	Name       string               `json:"name"`
+	Backend    string               `json:"backend"`
+	Namespaces gological.Namespaces `json:"namespaces"`
 }
 
 type Client struct {
@@ -33,16 +35,16 @@ type Request struct {
 
 // http返回数据结构
 type Response struct {
-	Code    ReplyCode   `json:"code"`
-	Result  interface{} `json:"result,omitempty"`
-	Message string      `json:"message,omitempty"`
+	Code    ReplyCode           `json:"code"`
+	Result  *gological.Response `json:"result,omitempty"`
+	Message string              `json:"message,omitempty"`
 }
 
 func Error(code ReplyCode, message string) *Response {
 	return &Response{Code: code, Message: message}
 }
 
-func Success(result interface{}) *Response {
+func Success(result *gological.Response) *Response {
 	return &Response{Code: 0, Result: result}
 }
 
@@ -55,7 +57,6 @@ type Transport interface {
 	Running() <-chan bool
 	Listen(addr string, port uint) error
 	Start() error
-
 	// AddHandle
 	// in http: gin.HandlerFunc
 	// in http: gin.HandlerFunc, httpMethod, relativePath

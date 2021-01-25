@@ -2,12 +2,13 @@ package logical
 
 import (
 	"context"
+	gological "github.com/go-various/goplugin/logical"
 	"github.com/go-various/pool"
 )
 
 type WorkerReply struct {
-	Err    error
-	Result interface{}
+	Err    error               `json:"err"`
+	Result *gological.Response `json:"result"`
 }
 type reader struct {
 	c chan<- *WorkerReply
@@ -18,7 +19,11 @@ func NewReader(c chan<- *WorkerReply) *reader {
 }
 
 func (r *reader) Update(result interface{}, err error) {
-	r.c <- &WorkerReply{Err: err, Result: result}
+	if nil == result {
+		r.c <- &WorkerReply{Err: err, Result: nil}
+		return
+	}
+	r.c <- &WorkerReply{Err: err, Result: result.(*gological.Response)}
 }
 
 func (m *Transport) NewObserver(c chan<- *WorkerReply) pool.Observer {

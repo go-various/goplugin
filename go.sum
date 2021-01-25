@@ -37,12 +37,10 @@ github.com/go-playground/validator/v10 v10.4.1 h1:pH2c5ADXtd66mxoE0Zm9SUhxE20r7a
 github.com/go-playground/validator/v10 v10.4.1/go.mod h1:nlOn6nFhuKACm19sB/8EGNn9GlaMV7XkbRSipzJ0Ii4=
 github.com/go-various/consul v0.0.0-20201224063524-33472fcc010d h1:HcUeH08SNxCEZ0Xv1s5OzN0flR3MNaZtlgOnOuVzNN4=
 github.com/go-various/consul v0.0.0-20201224063524-33472fcc010d/go.mod h1:+jz2lDXIhPVi+CxB1Vp7SmQi0sxawvYSZ7CNvVqMCTs=
-github.com/go-various/ginplus v0.0.0-20210124050709-a85ee698898b h1:uV/B3JykTu42/T6bcA9b/QwjMs2nBIaTCvYG/7/L5qg=
-github.com/go-various/ginplus v0.0.0-20210124050709-a85ee698898b/go.mod h1:Gc9H2XEmoEHAHJ6E3WGMg3IlXIXXXlH2Dz0IGWt0ops=
 github.com/go-various/helper v0.0.0-20210122144500-8d8f0921bb17 h1:h1QffboICF2yzStcl7b99Haq/qwevAk+j8u7jeHsj04=
 github.com/go-various/helper v0.0.0-20210122144500-8d8f0921bb17/go.mod h1:SKnpldDeAXTpWRq9kDnsPXxmTcG4FmGXNVJG8lQi96M=
-github.com/go-various/pool v0.0.0-20210123051937-34d02fa0fd05 h1:PxvxrGLDbqHW9Wv13WeTRf2AzaOIlNrumabz0QfI2u4=
-github.com/go-various/pool v0.0.0-20210123051937-34d02fa0fd05/go.mod h1:OeRTNuYhwZZxnbKMDpvM2tz8LfKRFQIXVjvcbwOXexc=
+github.com/go-various/pool v0.0.0-20210125120427-c666f9de5518 h1:yWYiVcwrie0j9FrS3dMRoIxsN/Ktj89CMbRIWWbmY2M=
+github.com/go-various/pool v0.0.0-20210125120427-c666f9de5518/go.mod h1:OeRTNuYhwZZxnbKMDpvM2tz8LfKRFQIXVjvcbwOXexc=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=

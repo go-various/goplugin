@@ -3,6 +3,7 @@ package rpc
 import (
 	"github.com/go-various/goplugin/pluginregister"
 	"github.com/go-various/goplugin/transport"
+	"github.com/go-various/helper/jsonutil"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-msgpack/codec"
 	msgpackrpc "github.com/hashicorp/net-rpc-msgpackrpc"
@@ -12,13 +13,13 @@ import (
 
 func TestNewTransport(t *testing.T) {
 	logger := hclog.New(&hclog.LoggerOptions{
-		Name:              "rpc",
-		Level:             hclog.Trace,
-		IncludeLocation:   true,
+		Name:            "transport",
+		Level:           hclog.Trace,
+		IncludeLocation: true,
 	})
-	pm := pluginregister.NewPluginManager("plugin",nil, nil, logger)
+	pm := pluginregister.NewPluginManager("plugin", nil, nil, logger)
 	trans := NewTransport(pm, 8, logger)
-	if err := trans.Listen("127.0.0.1", 6000); err != nil {
+	if err := trans.Listen("127.0.0.1", 18400); err != nil {
 		t.Fatal(err)
 		return
 	}
@@ -32,7 +33,7 @@ func TestNewTransport(t *testing.T) {
 
 func TestService_Invoke(t *testing.T) {
 	//RPC Communication (client side)
-	conn, err := net.Dial("tcp", "127.0.0.1:6000")
+	conn, err := net.Dial("tcp", "127.0.0.1:18400")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,18 +45,18 @@ func TestService_Invoke(t *testing.T) {
 	//rpcCodec := msgpackrpc.NewCodecFromHandle(true, true, conn, pool.MsgpackHandle)
 	//rpcCodec := codec.MsgpackSpecRpc.ClientCodec(conn, pool.MsgpackHandle)
 	args := transport.Request{
-		Method:    "account.user.login",
+		Method:    "account.user.logout",
 		Version:   "",
 		Timestamp: "",
 		SignType:  "",
 		Sign:      "",
-		Data:      "",
+		Data:      `{"mobile":"11231231","source":"wx","verify_code":"12313"}`,
 	}
 	var reply transport.Response
 	rpcCodec := msgpackrpc.NewCodecFromHandle(true, true, conn, &codec.MsgpackHandle{})
-	if err := msgpackrpc.CallWithCodec(rpcCodec,"Transport.Invoke", args, &reply); err != nil {
+	if err := msgpackrpc.CallWithCodec(rpcCodec, "Transport.Invoke", args, &reply); err != nil {
 		t.Error(err)
 		return
 	}
-	t.Log(reply)
+	t.Log(jsonutil.EncodeToString(reply))
 }
