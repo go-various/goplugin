@@ -87,12 +87,13 @@ func (b *Backend) HandleRequest(ctx context.Context, req *logical.Request) (resp
 		return nil, ErrOperationNotExists
 	}
 	resp, err = operation.Handler()(ctx, req)
+
 	return resp, err
 }
 
 // Cleanup is used to release resources and prepare to stop the grpc-backend
 func (b *Backend) Cleanup(ctx context.Context) {
-	b.logger.Trace("clean", b.Clean)
+	b.logger.Trace("cleaning")
 	if b.Clean != nil {
 		b.Clean(ctx)
 	}

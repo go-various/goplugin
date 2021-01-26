@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"github.com/armon/go-metrics"
 	"github.com/gin-gonic/gin"
 	gological "github.com/go-various/goplugin/logical"
 	"github.com/go-various/goplugin/transport"
@@ -26,11 +27,13 @@ func (m *Transport) api() {
 	m.engine.POST(m.basepath+"/api", func(c *gin.Context) {
 		request := new(transport.Request)
 		if err := c.ShouldBindJSON(request); err != nil {
+			metrics.IncrCounter([]string{"transport","http", "error"}, 1)
 			c.SecureJSON(200, transport.Error(transport.ReplyCodeFailure, err.Error()))
 			return
 		}
 		if m.Security != nil {
 			if !m.Security.SignVerify(request) {
+				metrics.IncrCounter([]string{"transport","http", "error"}, 1)
 				c.SecureJSON(200,
 					transport.Error(transport.ReplyCodeSignInvalid, "invalid sign"))
 				return
@@ -42,6 +45,8 @@ func (m *Transport) api() {
 
 		method, err := m.getMethod(request.Method)
 		if err != nil {
+			metrics.IncrCounter([]string{"transport","http", "error"}, 1)
+
 			c.SecureJSON(200,
 				transport.Error(transport.ReplyCodeMethodInvalid, err.Error()))
 			return
@@ -60,6 +65,7 @@ func (m *Transport) api() {
 			},
 		}
 
+		metrics.IncrCounter([]string{"transport", "http","success"}, 1)
 		resp := m.Transport.Invoke(method.Backend, req)
 		m.writerReply(c, resp)
 

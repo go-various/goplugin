@@ -3,7 +3,7 @@ module github.com/go-various/goplugin
 go 1.15
 
 require (
-	github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da
+	github.com/armon/go-metrics v0.3.6
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-various/consul v1.0.0
@@ -18,6 +18,7 @@ require (
 	github.com/hashicorp/go-version v1.2.1
 	github.com/hashicorp/net-rpc-msgpackrpc v0.0.0-20151116020338-a14192a58a69
 	github.com/mitchellh/copystructure v1.0.0
+	github.com/prometheus/client_golang v1.9.0
 	github.com/satori/go.uuid v1.2.0
 	google.golang.org/grpc v1.34.0
 )

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-various/goplugin/logical"
+	"github.com/go-various/goplugin/metric"
 	"github.com/go-various/goplugin/pluginregister"
 	"github.com/go-various/helper/jsonutil"
 	"time"
@@ -19,6 +20,9 @@ func (m *Transport) backend() func(i interface{}) (interface{}, error) {
 	return func(i interface{}) (result interface{}, err error) {
 		data := i.(*WorkerData)
 		backendName := data.Backend
+		metric.PluginCountMetric.
+			WithLabelValues(backendName , data.Request.Namespace, data.Request.Operation).Add(1)
+
 		defer func(then time.Time) {
 			if nil != err {
 				m.Logger.Error("backend", "id", data.Request.ID,
@@ -35,6 +39,10 @@ func (m *Transport) backend() func(i interface{}) (interface{}, error) {
 						"took", time.Since(then))
 				}
 			}
+			metric.PluginGaugeMetric.
+				WithLabelValues(backendName , data.Request.Namespace, data.Request.Operation).
+				Set(time.Since(then).Seconds())
+
 		}(time.Now())
 
 		if m.Logger.IsTrace() {

@@ -87,15 +87,15 @@ func (m *Transport) handleConn(conn net.Conn) {
 			return
 		}
 	}
+
 	rpcCodec := msgpackrpc.NewCodecFromHandle(true, true, conn, &codec.MsgpackHandle{})
+
 	if err := m.rpcServer.ServeRequest(rpcCodec); err != nil {
 		if err != io.EOF && !strings.Contains(err.Error(), "closed") {
 			m.Logger.Error("RPC error", "conn", conn.RemoteAddr(), "error", err)
-			metrics.IncrCounter([]string{"rpc", "request_error"}, 1)
+			metrics.IncrCounter([]string{"transport","rpc", "error"}, 1)
 		}
 		return
 	}
-
-	metrics.IncrCounter([]string{"rpc", "request"}, 1)
-
+	metrics.IncrCounter([]string{"transport","rpc", "success"}, 1)
 }

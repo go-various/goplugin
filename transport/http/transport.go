@@ -53,8 +53,8 @@ func NewTransport(m *pluginregister.PluginManager,
 
 //关闭网关
 func (m *Transport) Shutdown() {
-	m.Transport.Shutdown()
 	m.srv.Shutdown(m.Transport.Ctx)
+	m.Transport.Shutdown()
 }
 
 func (m *Transport) Listen(addr string, port uint) error {
