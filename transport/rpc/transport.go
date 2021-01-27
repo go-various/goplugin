@@ -73,7 +73,10 @@ func (m *Transport) Start() error {
 	return nil
 }
 
+var handle = &codec.MsgpackHandle{}
+
 func (m *Transport) handleConn(conn net.Conn) {
+	m.Logger.Trace("connected", "remote", conn.RemoteAddr())
 	if m.Security != nil {
 		client := &transport.Client{
 			RemoteAddr: conn.RemoteAddr().String(),
@@ -87,15 +90,25 @@ func (m *Transport) handleConn(conn net.Conn) {
 			return
 		}
 	}
-
-	rpcCodec := msgpackrpc.NewCodecFromHandle(true, true, conn, &codec.MsgpackHandle{})
-
-	if err := m.rpcServer.ServeRequest(rpcCodec); err != nil {
-		if err != io.EOF && !strings.Contains(err.Error(), "closed") {
-			m.Logger.Error("RPC error", "conn", conn.RemoteAddr(), "error", err)
-			metrics.IncrCounter([]string{"transport","rpc", "error"}, 1)
+	defer func() {
+		metrics.IncrCounter([]string{"transport", "rpc", "success"}, 1)
+		m.Logger.Trace("closed", "remote", conn.RemoteAddr())
+		conn.Close()
+	}()
+	rpcCodec := msgpackrpc.NewCodecFromHandle(true, true, conn, handle)
+	for {
+		select {
+		case <-m.Ctx.Done():
+			return
+		default:
 		}
-		return
+		if err := m.rpcServer.ServeRequest(rpcCodec); err != nil {
+			if err != io.EOF && !strings.Contains(err.Error(), "closed") {
+				m.Logger.Error("RPC error", "conn", conn.RemoteAddr(), "error", err)
+				metrics.IncrCounter([]string{"transport", "rpc", "error"}, 1)
+			}
+			return
+		}
 	}
-	metrics.IncrCounter([]string{"transport","rpc", "success"}, 1)
+
 }

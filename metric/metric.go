@@ -10,9 +10,9 @@ import (
 
 var (
 	// Create a metrics registry.
-	Registry             *prometheus.Registry
-	PluginCountMetric    *prometheus.CounterVec
-	PluginGaugeMetric    *prometheus.GaugeVec
+	Registry          *prometheus.Registry
+	PluginCountMetric *prometheus.CounterVec
+	PluginGaugeMetric *prometheus.GaugeVec
 )
 
 func init() {
@@ -41,9 +41,9 @@ func init() {
 	c := &metrics.Config{
 		ServiceName:          "various", // Use client provided service
 		HostName:             "",
-		EnableHostname:       false,             // Enable hostname prefix
+		EnableHostname:       false,            // Enable hostname prefix
 		EnableRuntimeMetrics: true,             // Enable runtime profiling
-		EnableTypePrefix:     true,            // Disable type prefix
+		EnableTypePrefix:     false,            // Disable type prefix
 		TimerGranularity:     time.Millisecond, // Timers are in milliseconds
 		ProfileInterval:      time.Second,      // Poll runtime every second
 		FilterDefault:        true,             // Don't filter metrics by default

@@ -3,7 +3,6 @@ package rpc
 import (
 	"github.com/go-various/goplugin/pluginregister"
 	"github.com/go-various/goplugin/transport"
-	"github.com/go-various/helper/jsonutil"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-msgpack/codec"
 	msgpackrpc "github.com/hashicorp/net-rpc-msgpackrpc"
@@ -52,11 +51,13 @@ func TestService_Invoke(t *testing.T) {
 		Sign:      "",
 		Data:      `{"mobile":"11231231","source":"wx","verify_code":"12313"}`,
 	}
-	var reply transport.Response
 	rpcCodec := msgpackrpc.NewCodecFromHandle(true, true, conn, &codec.MsgpackHandle{})
-	if err := msgpackrpc.CallWithCodec(rpcCodec, "Transport.Invoke", args, &reply); err != nil {
-		t.Error(err)
-		return
+	for i := 0; i < 100000; i++ {
+		var reply transport.Response
+		if err := msgpackrpc.CallWithCodec(rpcCodec, "Transport.Invoke", args, &reply); err != nil {
+			t.Error(err)
+			return
+		}
+		//t.Log(jsonutil.EncodeToString(reply))
 	}
-	t.Log(jsonutil.EncodeToString(reply))
 }
