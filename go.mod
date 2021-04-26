@@ -8,7 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-various/consul v1.0.0
 	github.com/go-various/helper v0.0.0-20210122144500-8d8f0921bb17
-	github.com/go-various/pool v1.0.1
+	github.com/go-various/pool v1.0.2
 	github.com/golang/protobuf v1.4.3
 	github.com/google/uuid v1.1.2
 	github.com/hashicorp/consul/api v1.8.1
@@ -21,8 +21,4 @@ require (
 	github.com/prometheus/client_golang v1.9.0
 	github.com/satori/go.uuid v1.2.0
 	google.golang.org/grpc v1.34.0
-)
-
-replace (
-	github.com/go-various/pool v1.0.1 => /Volumes/development/variousdev.com/pool
 )

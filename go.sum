@@ -96,8 +96,8 @@ github.com/go-various/consul v1.0.0 h1:HfR0OFap9GB0aPiPM1w6WL8DiMo8UHd4de08I8lu4
 github.com/go-various/consul v1.0.0/go.mod h1:+jz2lDXIhPVi+CxB1Vp7SmQi0sxawvYSZ7CNvVqMCTs=
 github.com/go-various/helper v0.0.0-20210122144500-8d8f0921bb17 h1:h1QffboICF2yzStcl7b99Haq/qwevAk+j8u7jeHsj04=
 github.com/go-various/helper v0.0.0-20210122144500-8d8f0921bb17/go.mod h1:SKnpldDeAXTpWRq9kDnsPXxmTcG4FmGXNVJG8lQi96M=
-github.com/go-various/pool v1.0.0 h1:Vs6nTJlPj1c5ilYpMeF6qBu4ardFVyeBSdmY1e9gQoM=
-github.com/go-various/pool v1.0.0/go.mod h1:OeRTNuYhwZZxnbKMDpvM2tz8LfKRFQIXVjvcbwOXexc=
+github.com/go-various/pool v1.0.2 h1:I4OZ6bsGI6CCOgpbKr30PL+GQMcPrf8rsOULC0BmuLU=
+github.com/go-various/pool v1.0.2/go.mod h1:OeRTNuYhwZZxnbKMDpvM2tz8LfKRFQIXVjvcbwOXexc=
 github.com/gogo/googleapis v1.1.0/go.mod h1:gf4bu3Q80BeJ6H1S1vYPm8/ELATdvryBaNFGgqEef3s=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.0/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
