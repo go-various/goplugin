@@ -53,9 +53,12 @@ func NewTransport(m *pluginregister.PluginManager,
 
 //关闭网关
 func (m *Transport) Shutdown() {
-	m.srv.Shutdown(m.Transport.Ctx)
+	if m.srv != nil{
+		m.srv.Shutdown(m.Transport.Ctx)
+	}
 	m.Transport.Shutdown()
 }
+
 
 func (m *Transport) Listen(addr string, port uint) error {
 	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", addr, port))
